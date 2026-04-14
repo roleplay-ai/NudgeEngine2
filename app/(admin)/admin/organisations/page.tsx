@@ -92,8 +92,7 @@ export default async function OrganisationsPage() {
                   </span>
                 </div>
                 <div className="td text-text-muted">
-                  {/* @ts-expect-error: Supabase count shape */}
-                  {org.user_companies?.[0]?.count ?? 0}
+                  {(org.user_companies as { count: number }[])?.[0]?.count ?? 0}
                 </div>
                 <div className="td">
                   <Link

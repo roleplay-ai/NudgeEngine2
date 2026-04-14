@@ -98,7 +98,6 @@ export default async function TrainerOverview() {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function CohortCard({ cohort, highlight }: { cohort: any; highlight?: boolean }) {
   const st = STATUS_CONFIG[cohort.status] ?? STATUS_CONFIG.draft;
-  // @ts-expect-error: supabase count shape
   const participantCount = cohort.user_cohorts?.[0]?.count ?? 0;
 
   return (
@@ -120,7 +119,6 @@ function CohortCard({ cohort, highlight }: { cohort: any; highlight?: boolean })
         <div>
           <div className="font-bold text-brand-dark">{cohort.name}</div>
           <div className="text-xs text-text-muted mt-0.5">
-            {/* @ts-expect-error supabase join */}
             {cohort.programmes?.name ?? 'Programme'} · {participantCount} participants
           </div>
           <div className="text-xs text-text-muted mt-0.5">

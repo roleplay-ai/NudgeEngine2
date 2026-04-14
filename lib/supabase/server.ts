@@ -12,7 +12,7 @@ export async function createClient() {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
               cookieStore.set(name, value, options);
@@ -62,6 +62,6 @@ export async function getSessionUser() {
     avatar_url: profile.avatar_url,
     role: userCompany.role as import('@/types').UserRole,
     company_id: userCompany.company_id,
-    company_name: (userCompany.companies as { name: string } | null)?.name ?? '',
+    company_name: (userCompany.companies as unknown as { name: string } | null)?.name ?? '',
   };
 }
