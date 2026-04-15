@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { createAdminClient, generatePassword, obfuscatePassword } from '@/lib/supabase/admin';
+import { createAdminClient, generatePassword } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 
 export async function POST(request: NextRequest) {
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       id:             authUser.user!.id,
       email:          hr_email,
       name:           hr_name,
-      plain_password: obfuscatePassword(tempPassword),  // obfuscated, NOT plain text
+      plain_password: tempPassword,
     });
 
   if (profileErr) {

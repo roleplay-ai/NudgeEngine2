@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { createAdminClient, generatePassword, obfuscatePassword } from '@/lib/supabase/admin';
+import { createAdminClient, generatePassword } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import type { UserRole } from '@/types';
 
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     email,
     name,
     phone:          phone || null,
-    plain_password: obfuscatePassword(tempPassword),
+    plain_password: tempPassword,
   });
 
   // ── 6. Create user_companies row ──────────────────────────────────────────

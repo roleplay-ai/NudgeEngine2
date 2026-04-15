@@ -1,12 +1,12 @@
 import { createClient, getSessionUser } from '@/lib/supabase/server';
 import Topbar from '@/components/layout/Topbar';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
 async function getParticipantData(userId: string) {
   const supabase = await createClient();
 
-  // Get active cohort for this participant
   const { data: userCohort } = await supabase
     .from('user_cohorts')
     .select(`
@@ -25,25 +25,22 @@ async function getParticipantData(userId: string) {
 
   if (!userCohort) return null;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cohort = userCohort.cohorts as any;
   if (!cohort) return null;
 
-  // Get task completions
   const { data: completions } = await supabase
     .from('task_completions')
     .select('task_type')
     .eq('user_id', userId)
     .eq('cohort_id', cohort.id);
 
-  const completedTasks = new Set((completions ?? []).map((c: any) => c.task_type));
-
-  // Calculate readiness score: 20% base + 20% per task (4 tasks = 100%)
+  const completedTasks = new Set((completions ?? []).map((c: { task_type: string }) => c.task_type));
   const readinessScore = 20 + completedTasks.size * 20;
 
-  // Days to training
   const trainingDate = new Date(cohort.training_date);
-  const today        = new Date();
-  const daysLeft     = Math.max(0, Math.ceil((trainingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+  const today = new Date();
+  const daysLeft = Math.max(0, Math.ceil((trainingDate.getTime() - today.getTime()) / 86400000));
 
   return {
     cohort,
@@ -56,38 +53,10 @@ async function getParticipantData(userId: string) {
 }
 
 const TASKS = [
-  {
-    id:    'compare',
-    step:  '01',
-    title: 'Compare Your Skills',
-    sub:   'Rate yourself on key skill areas and see how you compare with your peers.',
-    icon:  '⭐',
-    color: '#FFCE00',
-  },
-  {
-    id:    'shape',
-    step:  '02',
-    title: 'Shape the Session',
-    sub:   'Share your expectations and goals for the training.',
-    icon:  '🎯',
-    color: '#623CEA',
-  },
-  {
-    id:    'meet',
-    step:  '03',
-    title: 'Meet Your Batch',
-    sub:   'Introduce yourself and learn about your fellow participants.',
-    icon:  '👋',
-    color: '#23CE68',
-  },
-  {
-    id:    'prereads',
-    step:  '04',
-    title: 'Pre-reads',
-    sub:   'Review the materials shared by your trainer before the session.',
-    icon:  '📖',
-    color: '#3699FC',
-  },
+  { id: 'compare',  step: '01', title: 'Compare Your Skills',  sub: 'Rate yourself on key skill areas and see how you compare with your peers.', icon: '⭐', color: '#FFCE00', href: '/participant/pre-training/task-1-skills' },
+  { id: 'shape',    step: '02', title: 'Shape the Session',    sub: 'Share your expectations and goals for the training.',                         icon: '🎯', color: '#623CEA', href: '/participant/pre-training/task-2-expectations' },
+  { id: 'meet',     step: '03', title: 'Meet Your Batch',      sub: 'Introduce yourself and learn about your fellow participants.',                icon: '👋', color: '#23CE68', href: '/participant/pre-training/task-3-intro' },
+  { id: 'prereads', step: '04', title: 'Pre-reads',            sub: 'Review the materials shared by your trainer before the session.',             icon: '📖', color: '#3699FC', href: '/participant/pre-training/task-4-prereads' },
 ];
 
 export default async function PreTrainingPage() {
@@ -114,22 +83,26 @@ export default async function PreTrainingPage() {
   const { cohort, completedTasks, readinessScore, daysLeft, trainer, programme } = data;
   const firstName = user!.name.split(' ')[0];
 
+  function getTaskState(taskIndex: number): 'done' | 'active' | 'locked' {
+    const task = TASKS[taskIndex];
+    if (completedTasks.has(task.id)) return 'done';
+    if (taskIndex === 0) return 'active';
+    if (completedTasks.has(TASKS[taskIndex - 1].id)) return 'active';
+    return 'locked';
+  }
+
   return (
     <>
       <Topbar title="Pre-Training" />
 
       <main className="flex-1 overflow-y-auto px-7 py-6">
-
-        {/* ── Hero ─────────────────────────────────────────────────────── */}
+        {/* Hero */}
         <div
           className="rounded-[20px] p-6 mb-6 relative overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, #221D23 0%, #2E2433 100%)' }}
+          style={{ background: 'linear-gradient(135deg, #221D23 0%, #2E2433 50%, #1A1520 100%)', backgroundSize: '200% 200%' }}
         >
-          {/* Background decoration */}
-          <div
-            className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10"
-            style={{ background: '#FFCE00', transform: 'translate(30%, -30%)' }}
-          />
+          <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10" style={{ background: '#FFCE00', transform: 'translate(30%, -30%)' }} />
+          <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full opacity-5" style={{ background: '#623CEA', transform: 'translate(-30%, 30%)' }} />
 
           <div className="relative">
             <div className="flex items-start justify-between mb-4">
@@ -139,101 +112,99 @@ export default async function PreTrainingPage() {
                 </div>
                 <h2 className="text-xl font-extrabold text-white">{cohort.name}</h2>
               </div>
-
-              {/* Days counter */}
               <div className="text-right flex-shrink-0">
-                <div className="text-3xl font-black text-brand-yellow">{daysLeft}</div>
-                <div className="text-[11px] text-white/50">days to go</div>
+                <div className="text-4xl font-black text-brand-yellow leading-none">{readinessScore}%</div>
+                <div className="text-[11px] text-white/50 mt-1">Ready</div>
               </div>
             </div>
 
-            {/* Readiness score */}
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-white/60">Your Readiness</span>
-                <span className="text-sm font-extrabold text-brand-yellow">{readinessScore}%</span>
+                <span className="text-xs font-bold text-white/40">{completedTasks.size}/4 tasks</span>
               </div>
               <div className="progress-wrap" style={{ height: '6px' }}>
-                <div
-                  className="progress-fill"
-                  style={{ width: `${readinessScore}%`, background: '#FFCE00' }}
-                />
+                <div className="progress-fill" style={{ width: `${readinessScore}%`, background: '#FFCE00', transition: 'width 0.7s ease' }} />
               </div>
             </div>
 
-            <div className="flex items-center gap-4 text-xs text-white/50">
-              <span>
-                📅 {new Date(cohort.training_date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
-              </span>
+            <div className="flex items-center gap-5 text-xs text-white/50">
+              <span>📅 {daysLeft} days to training · {new Date(cohort.training_date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
               {cohort.location && <span>📍 {cohort.location}</span>}
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-5">
-          {/* ── Tasks column ─────────────────────────────────────────────── */}
+          {/* Tasks column */}
           <div className="col-span-2">
             <div className="section-label">YOUR CHECKLIST</div>
             <div className="section-title mb-5">Get Ready, {firstName}</div>
 
-            <div className="card">
+            <div className="space-y-3">
               {TASKS.map((task, i) => {
-                const done = completedTasks.has(task.id);
+                const state = getTaskState(i);
+                const isLocked = state === 'locked';
+                const isDone = state === 'done';
 
-                return (
+                const inner = (
                   <div
-                    key={task.id}
-                    className="flex items-start gap-4 py-4"
+                    className="card flex items-start gap-4 transition-all"
                     style={{
-                      borderBottom: i < TASKS.length - 1 ? '0.5px solid rgba(34,29,35,0.07)' : 'none',
+                      opacity: isLocked ? 0.45 : 1,
+                      cursor: isLocked ? 'default' : 'pointer',
+                      borderColor: isDone ? 'rgba(35,206,104,0.3)' : state === 'active' ? 'rgba(255,206,0,0.2)' : undefined,
+                      background: isDone ? '#FAFFF7' : undefined,
+                      marginBottom: 0,
                     }}
                   >
-                    {/* Icon */}
                     <div
-                      className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0 text-lg"
+                      className="w-11 h-11 rounded-[14px] flex items-center justify-center flex-shrink-0 text-lg transition-transform"
                       style={{
-                        background: done ? '#F0FFF7' : `${task.color}15`,
-                        border:     done ? '1.5px solid #23CE68' : `1.5px solid ${task.color}30`,
+                        background: isDone ? '#F0FFF7' : `${task.color}12`,
+                        border: isDone ? '1.5px solid #23CE68' : `1.5px solid ${task.color}30`,
+                        transform: state === 'active' ? 'scale(1.05)' : 'scale(1)',
                       }}
                     >
-                      {done ? '✅' : task.icon}
+                      {isDone ? '✅' : task.icon}
                     </div>
 
-                    {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span
-                          className="text-[10px] font-extrabold uppercase tracking-wider"
-                          style={{ color: task.color }}
-                        >
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider" style={{ color: task.color }}>
                           TASK {task.step}
                         </span>
-                        {done && (
-                          <span className="tag tag-green text-[10px] py-0">Done</span>
-                        )}
+                        {isDone && <span className="tag tag-green text-[10px] py-0">Done</span>}
+                        {isLocked && <span className="tag tag-grey text-[10px] py-0">🔒 Locked</span>}
                       </div>
                       <div className="font-bold text-brand-dark text-sm mt-0.5">{task.title}</div>
                       <div className="text-xs text-text-muted mt-0.5 leading-relaxed">{task.sub}</div>
                     </div>
 
-                    {/* CTA */}
-                    {!done && (
-                      <button
-                        className="btn-primary flex-shrink-0 text-xs px-3 py-2"
-                        style={{ fontSize: '12px' }}
-                      >
-                        Start
-                      </button>
+                    {state === 'active' && (
+                      <span className="btn-primary flex-shrink-0 text-xs px-4 py-2" style={{ animation: 'glowPulse 2s infinite' }}>
+                        Start →
+                      </span>
+                    )}
+                    {isDone && (
+                      <span className="text-xs font-semibold text-brand-green flex-shrink-0">Complete ✓</span>
                     )}
                   </div>
+                );
+
+                if (isLocked) return <div key={task.id}>{inner}</div>;
+
+                return (
+                  <Link key={task.id} href={task.href} className="no-underline block">
+                    {inner}
+                  </Link>
                 );
               })}
             </div>
           </div>
 
-          {/* ── Sidebar column ──────────────────────────────────────────── */}
+          {/* Sidebar */}
           <div>
-            {/* Trainer card */}
             {trainer && (
               <div className="card mb-0">
                 <div className="section-label mb-2">YOUR TRAINER</div>
@@ -246,38 +217,27 @@ export default async function PreTrainingPage() {
                     <div className="text-xs text-text-muted">Session Facilitator</div>
                   </div>
                 </div>
-                <button
-                  className="btn-dark w-full mt-4 text-xs justify-center"
-                  style={{ height: '36px' }}
-                >
-                  💬 Send a message
-                </button>
               </div>
             )}
 
-            {/* Readiness breakdown */}
             <div className="card mt-5">
               <div className="section-label mb-3">READINESS SCORE</div>
               <div className="text-3xl font-black text-brand-purple mb-1">{readinessScore}%</div>
-              <div className="text-xs text-text-muted mb-4">
-                {completedTasks.size} of 4 tasks completed
-              </div>
+              <div className="text-xs text-text-muted mb-4">{completedTasks.size} of 4 tasks completed</div>
 
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {TASKS.map(task => {
                   const done = completedTasks.has(task.id);
                   return (
-                    <div key={task.id} className="flex items-center gap-2">
+                    <div key={task.id} className="flex items-center gap-2.5">
                       <div
-                        className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
+                        className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
                         style={{ background: done ? '#23CE68' : 'rgba(34,29,35,0.1)' }}
                       >
-                        {done && (
-                          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        )}
+                        {done && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>}
                       </div>
-                      <span className="text-xs text-text-secondary">{task.title}</span>
-                      <span className="text-xs font-bold ml-auto" style={{ color: task.color }}>+20%</span>
+                      <span className="text-xs text-text-secondary flex-1">{task.title}</span>
+                      <span className="text-xs font-bold" style={{ color: done ? '#23CE68' : task.color }}>+20%</span>
                     </div>
                   );
                 })}
