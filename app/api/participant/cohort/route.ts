@@ -12,7 +12,7 @@ export async function GET() {
       id, user_id, cohort_id, cohort_role, status, buddy_user_id, enrolled_date,
       cohorts(
         id, name, training_date, training_time, location, status, max_participants,
-        programmes(id, name, description, skills(id, name, description, sort_order)),
+        programmes(id, name, description),
         users!cohorts_trainer_user_id_fkey(id, name, avatar_url),
         cohort_phases(id, name, sequence_order)
       )

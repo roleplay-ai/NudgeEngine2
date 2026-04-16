@@ -53,7 +53,7 @@ async function getParticipantData(userId: string) {
 }
 
 const TASKS = [
-  { id: 'compare',  step: '01', title: 'Compare Your Skills',  sub: 'Rate yourself on key skill areas and see how you compare with your peers.', icon: '⭐', color: '#FFCE00', href: '/participant/pre-training/task-1-skills' },
+  { id: 'compare',  step: '01', title: 'Programme rating',  sub: 'Rate how you feel about the programme before training and see how you compare with your batch.', icon: '⭐', color: '#FFCE00', href: '/participant/pre-training/task-1-skills' },
   { id: 'shape',    step: '02', title: 'Shape the Session',    sub: 'Share your expectations and goals for the training.',                         icon: '🎯', color: '#623CEA', href: '/participant/pre-training/task-2-expectations' },
   { id: 'meet',     step: '03', title: 'Meet Your Batch',      sub: 'Introduce yourself and learn about your fellow participants.',                icon: '👋', color: '#23CE68', href: '/participant/pre-training/task-3-intro' },
   { id: 'prereads', step: '04', title: 'Pre-reads',            sub: 'Review the materials shared by your trainer before the session.',             icon: '📖', color: '#3699FC', href: '/participant/pre-training/task-4-prereads' },

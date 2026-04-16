@@ -10,7 +10,7 @@ export default function ProgressPlaceholderPage() {
           <p className="text-3xl mb-4">📈</p>
           <h1 className="font-bold text-brand-dark text-lg mb-2">Progress tracking</h1>
           <p className="text-sm text-text-muted mb-6">
-            The full progress hub (actions, skill journey, confidence check-ins) is part of the next phase.
+            The full progress hub (actions, programme journey, confidence check-ins) is part of the next phase.
             For now, use your training day page to review your commitment and actions.
           </p>
           <Link href="/participant/training-day" className="btn-primary inline-flex justify-center">

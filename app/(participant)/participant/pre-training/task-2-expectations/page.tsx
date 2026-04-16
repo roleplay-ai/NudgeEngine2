@@ -96,7 +96,7 @@ export default function Task2ExpectationsPage() {
     <main className="flex-1 overflow-y-auto px-7 py-6">
       {/* Step indicator */}
       <div className="flex items-center gap-2 mb-6">
-        {['Skills', 'Expectations', 'Introductions', 'Pre-reads'].map((label, i) => (
+        {['Programme', 'Expectations', 'Introductions', 'Pre-reads'].map((label, i) => (
           <div key={label} className="flex items-center gap-2">
             <div
               className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-extrabold"
