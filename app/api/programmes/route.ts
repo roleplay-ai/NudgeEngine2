@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import type { UserRole } from '@/types';
 
 export async function GET(request: NextRequest) {
@@ -64,18 +65,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Programme name is required' }, { status: 400 });
   }
 
-  if (strategy_pillar_id) {
-    const { data: pillar } = await supabase
-      .from('strategy_pillars')
-      .select('id')
-      .eq('id', strategy_pillar_id)
-      .eq('company_id', callerUC.company_id)
-      .single();
-
-    if (!pillar) {
-      return NextResponse.json({ error: 'Strategy pillar not found in your company' }, { status: 400 });
-    }
-  }
+  // Strategy pillars are optional and currently unused in the HR UI.
+  // Keep the column in the DB for compatibility, but don't block programme creation on it.
 
   const { data: programme, error: progErr } = await supabase
     .from('programmes')
@@ -102,7 +93,9 @@ export async function POST(request: NextRequest) {
       sort_order: s.sort_order ?? i,
     }));
 
-    const { data: skillData, error: skillErr } = await supabase
+    // `skills` has RLS enabled with read-only policies; use service-role for server-side writes.
+    const admin = createAdminClient();
+    const { data: skillData, error: skillErr } = await admin
       .from('skills')
       .insert(skillRows)
       .select();

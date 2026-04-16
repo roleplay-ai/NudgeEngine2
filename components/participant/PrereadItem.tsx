@@ -11,10 +11,12 @@ interface Props {
   resource: {
     id: string;
     title: string;
-    resource_type: string;
+    resource_type?: string;
+    type?: string;
     url?: string | null;
-    file_path?: string | null;
+    file_url?: string | null;
     estimated_duration?: string | null;
+    duration_minutes?: number | null;
   };
   isRead: boolean;
   onMarkRead: (resourceId: string) => void;
@@ -22,7 +24,12 @@ interface Props {
 }
 
 export default function PrereadItem({ resource, isRead, onMarkRead, loading }: Props) {
-  const icon = TYPE_ICONS[resource.resource_type] ?? '📎';
+  const kind = resource.resource_type ?? resource.type ?? 'link';
+  const icon = TYPE_ICONS[kind] ?? '📎';
+  const openUrl = resource.url ?? resource.file_url;
+  const durationLabel =
+    resource.estimated_duration ??
+    (resource.duration_minutes != null ? `${resource.duration_minutes} min` : null);
 
   return (
     <div
@@ -43,15 +50,15 @@ export default function PrereadItem({ resource, isRead, onMarkRead, loading }: P
       <div className="flex-1 min-w-0">
         <div className="font-bold text-brand-dark text-sm">{resource.title}</div>
         <div className="text-xs text-text-muted mt-0.5">
-          {resource.resource_type.charAt(0).toUpperCase() + resource.resource_type.slice(1)}
-          {resource.estimated_duration && ` · ${resource.estimated_duration}`}
+          {kind.charAt(0).toUpperCase() + kind.slice(1)}
+          {durationLabel && ` · ${durationLabel}`}
         </div>
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">
-        {resource.url && (
+        {openUrl && (
           <a
-            href={resource.url}
+            href={openUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="btn-secondary text-xs px-3 py-1.5"

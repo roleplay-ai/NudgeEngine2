@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
@@ -111,7 +112,9 @@ export async function POST(request: NextRequest) {
     { cohort_id: cohort.id, name: 'Post-Training', sequence_order: 3 },
   ];
 
-  const { data: phases, error: phaseErr } = await supabase
+  // `cohort_phases` has RLS enabled with read-only policies; use service-role for server-side writes.
+  const admin = createAdminClient();
+  const { data: phases, error: phaseErr } = await admin
     .from('cohort_phases')
     .insert(phaseRows)
     .select();

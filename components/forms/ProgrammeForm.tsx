@@ -1,13 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import SkillsEditor from './SkillsEditor';
-
-interface StrategyPillar {
-  id: string;
-  name: string;
-  color: string;
-}
+import { useState } from 'react';
 
 interface SkillItem {
   id?: string;
@@ -19,8 +12,6 @@ interface SkillItem {
 interface ProgrammeFormData {
   name: string;
   description: string;
-  strategy_pillar_id: string;
-  skills: SkillItem[];
 }
 
 interface ProgrammeFormProps {
@@ -38,17 +29,7 @@ export default function ProgrammeForm({
 }: ProgrammeFormProps) {
   const [name, setName] = useState(initialData?.name ?? '');
   const [description, setDescription] = useState(initialData?.description ?? '');
-  const [strategyPillarId, setStrategyPillarId] = useState(initialData?.strategy_pillar_id ?? '');
-  const [skills, setSkills] = useState<SkillItem[]>(initialData?.skills ?? []);
-  const [pillars, setPillars] = useState<StrategyPillar[]>([]);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch('/api/strategy-pillars')
-      .then(r => r.json())
-      .then(data => setPillars(data.pillars ?? []))
-      .catch(() => {});
-  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -58,17 +39,11 @@ export default function ProgrammeForm({
       setError('Programme name is required');
       return;
     }
-    if (skills.length === 0 || skills.some(s => !s.name.trim())) {
-      setError('Add at least one skill with a name');
-      return;
-    }
 
     try {
       await onSubmit({
         name: name.trim(),
         description: description.trim(),
-        strategy_pillar_id: strategyPillarId,
-        skills,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
@@ -110,26 +85,8 @@ export default function ProgrammeForm({
             />
           </div>
 
-          {pillars.length > 0 && (
-            <div>
-              <label className="form-label">Strategy Pillar</label>
-              <select
-                className="form-select"
-                value={strategyPillarId}
-                onChange={e => setStrategyPillarId(e.target.value)}
-              >
-                <option value="">No pillar assigned</option>
-                {pillars.map(p => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
+          {/* Strategy pillars intentionally removed from the HR programme creation flow */}
         </div>
-      </div>
-
-      <div style={{ borderTop: '1px solid rgba(34,29,35,0.08)', paddingTop: '24px' }}>
-        <SkillsEditor skills={skills} onChange={setSkills} />
       </div>
 
       <div className="flex items-center gap-3 pt-2" style={{ borderTop: '1px solid rgba(34,29,35,0.08)', paddingTop: '16px' }}>

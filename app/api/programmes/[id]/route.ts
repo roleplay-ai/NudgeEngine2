@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET(
   _request: NextRequest,
@@ -72,7 +73,9 @@ export async function PATCH(
   if (progErr) return NextResponse.json({ error: progErr.message }, { status: 500 });
 
   if (skills !== undefined) {
-    await supabase.from('skills').delete().eq('programme_id', id);
+    // `skills` has RLS enabled with read-only policies; use service-role for server-side writes.
+    const admin = createAdminClient();
+    await admin.from('skills').delete().eq('programme_id', id);
 
     if (skills.length > 0) {
       const skillRows = skills.map((s: { name: string; description?: string; sort_order?: number }, i: number) => ({
@@ -82,7 +85,7 @@ export async function PATCH(
         sort_order: s.sort_order ?? i,
       }));
 
-      await supabase.from('skills').insert(skillRows);
+      await admin.from('skills').insert(skillRows);
     }
   }
 

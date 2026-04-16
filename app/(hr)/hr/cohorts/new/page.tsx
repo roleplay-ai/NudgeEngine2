@@ -19,16 +19,35 @@ export default function NewCohortPage() {
     training_time: string;
     location: string;
     max_participants: number;
+    candidate_user_ids: string[];
   }) {
     setLoading(true);
     try {
       const res = await fetch('/api/cohorts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          programme_id: data.programme_id,
+          name: data.name,
+          trainer_user_id: data.trainer_user_id,
+          training_date: data.training_date,
+          training_time: data.training_time,
+          location: data.location,
+          max_participants: data.max_participants,
+        }),
       });
       const result = await res.json();
       if (!res.ok) throw new Error(result.error);
+
+      if (Array.isArray(data.candidate_user_ids) && data.candidate_user_ids.length > 0) {
+        const enrollRes = await fetch(`/api/cohorts/${result.cohort.id}/enroll`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_ids: data.candidate_user_ids }),
+        });
+        const enrollResult = await enrollRes.json();
+        if (!enrollRes.ok) throw new Error(enrollResult.error);
+      }
 
       toast.success('Cohort created successfully!');
       router.push(`/hr/cohorts/${result.cohort.id}`);

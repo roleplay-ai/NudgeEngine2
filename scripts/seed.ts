@@ -461,6 +461,73 @@ async function seed() {
   ], { onConflict: 'company_id,title' });
   console.log('  ✓ Action templates created');
 
+  // ── 15. Phase 4: attendance, commitments, actions ─────────────────────
+  console.log('\n15. Seeding attendance & commitments (Phase 4)...');
+
+  for (let i = 0; i < participantIds.length; i++) {
+    await supabase.from('attendance').upsert(
+      {
+        user_id: participantIds[i],
+        cohort_id: cohortId,
+        pre_confirmed: i < 6,
+        live_checkin: i < 4,
+        checkin_time: i < 4 ? new Date().toISOString() : null,
+      },
+      { onConflict: 'user_id,cohort_id' }
+    );
+  }
+  console.log('  ✓ Attendance rows seeded');
+
+  const { data: existingPlan } = await supabase
+    .from('commitment_plans')
+    .select('id')
+    .eq('user_id', participantIds[0])
+    .eq('cohort_id', cohortId)
+    .maybeSingle();
+
+  let planId = existingPlan?.id;
+  if (!planId) {
+    const { data: plan, error: pErr } = await supabase
+      .from('commitment_plans')
+      .insert({
+        user_id: participantIds[0],
+        cohort_id: cohortId,
+        main_commitment:
+          'I commit to holding structured feedback conversations with each direct report at least twice before month end, using the SBI framework.',
+        why_text: 'My team has asked for clearer expectations and I want to role-model openness.',
+        blockers: 'Calendar density in Q4 — I will block focus time.',
+      })
+      .select()
+      .single();
+    if (!pErr && plan) planId = plan.id;
+  }
+
+  if (planId) {
+    const { data: tmpl } = await supabase
+      .from('action_templates')
+      .select('id, builds_capability')
+      .eq('company_id', companyId)
+      .limit(2);
+
+    const { count } = await supabase
+      .from('user_actions')
+      .select('*', { count: 'exact', head: true })
+      .eq('commitment_plan_id', planId);
+
+    if ((count ?? 0) === 0 && tmpl && tmpl.length > 0) {
+      await supabase.from('user_actions').insert(
+        tmpl.map(t => ({
+          user_id: participantIds[0],
+          commitment_plan_id: planId,
+          template_id: t.id,
+          builds_capability: t.builds_capability,
+          status: 'pending',
+        }))
+      );
+    }
+  }
+  console.log('  ✓ Commitment demo data ready');
+
   // ── Done ───────────────────────────────────────────────────────────────
   console.log('\n' + '═'.repeat(60));
   console.log('✅ Seed complete! Here are your login credentials:\n');

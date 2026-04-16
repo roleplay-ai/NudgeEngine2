@@ -12,7 +12,6 @@ async function getProgramme(id: string) {
     .from('programmes')
     .select(`
       *,
-      skills(id, name, description, sort_order),
       strategy_pillars(id, name, color),
       cohorts(
         id, name, status, training_date, training_time, location, max_participants, trainer_user_id,
@@ -34,9 +33,7 @@ export default async function ProgrammeDetailPage({ params }: { params: Promise<
 
   if (!programme) notFound();
 
-  const skills = programme.skills ?? [];
   const cohorts = programme.cohorts ?? [];
-  const pillar = programme.strategy_pillars;
 
   return (
     <>
@@ -62,12 +59,6 @@ export default async function ProgrammeDetailPage({ params }: { params: Promise<
                 <p className="text-sm text-text-muted mb-3 max-w-xl">{programme.description}</p>
               )}
               <div className="flex items-center gap-4 text-xs text-text-muted">
-                {pillar && (
-                  <span className="tag" style={{ background: `${pillar.color}18`, color: pillar.color }}>
-                    {pillar.name}
-                  </span>
-                )}
-                <span>{skills.length} skill{skills.length !== 1 ? 's' : ''}</span>
                 <span>{cohorts.length} cohort{cohorts.length !== 1 ? 's' : ''}</span>
                 <span>Created {new Date(programme.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
               </div>
@@ -75,7 +66,7 @@ export default async function ProgrammeDetailPage({ params }: { params: Promise<
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 gap-6">
           {/* Left: Cohorts */}
           <div className="col-span-2">
             <div className="flex items-center justify-between mb-3">
@@ -126,33 +117,6 @@ export default async function ProgrammeDetailPage({ params }: { params: Promise<
                 ))}
               </div>
             )}
-          </div>
-
-          {/* Right: Skills */}
-          <div>
-            <div className="section-label mb-3">SKILLS</div>
-            <div className="space-y-2">
-              {skills
-                .sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order)
-                .map((skill: { id: string; name: string; description: string | null; sort_order: number }, i: number) => (
-                <div key={skill.id} className="card" style={{ padding: '14px 16px', marginBottom: '8px' }}>
-                  <div className="flex items-center gap-2.5">
-                    <span
-                      className="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-bold flex-shrink-0"
-                      style={{ background: 'rgba(246,138,41,0.12)', color: '#F68A29' }}
-                    >
-                      {i + 1}
-                    </span>
-                    <div>
-                      <div className="text-sm font-bold text-brand-dark">{skill.name}</div>
-                      {skill.description && (
-                        <div className="text-xs text-text-muted mt-0.5">{skill.description}</div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </main>

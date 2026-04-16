@@ -24,7 +24,7 @@ async function getCohortDetail(cohortId: string, trainerId: string) {
 
 const TABS = [
   { key: 'pre-training', label: 'Pre-Training', href: (id: string) => `/trainer/cohorts/${id}/pre-training` },
-  { key: 'live', label: 'Live Session', href: (id: string) => `/trainer/cohorts/${id}/live`, disabled: true },
+  { key: 'live', label: 'Live Session', href: (id: string) => `/trainer/cohorts/${id}/live`, disabled: false },
   { key: 'post', label: 'Post-Training', href: (id: string) => `/trainer/cohorts/${id}/post`, disabled: true },
   { key: 'messages', label: 'Messages', href: (id: string) => `/trainer/cohorts/${id}/messages` },
 ];

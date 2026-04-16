@@ -4,13 +4,13 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PrereadItem from '@/components/participant/PrereadItem';
 
+// API returns DB shape (type, file_url); PrereadItem normalises display
 interface Resource {
   id: string;
   title: string;
-  resource_type: string;
-  url?: string | null;
-  file_path?: string | null;
-  estimated_duration?: string | null;
+  type: string;
+  file_url: string | null;
+  duration_minutes: number | null;
 }
 
 export default function Task4PrereadsPage() {

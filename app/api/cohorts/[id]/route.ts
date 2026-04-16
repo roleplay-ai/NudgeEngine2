@@ -17,23 +17,52 @@ export async function GET(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
 
+  const { data: callerUC } = await supabase
+    .from('user_companies')
+    .select('role, company_id')
+    .eq('user_id', user.id)
+    .eq('status', 'active')
+    .single();
+
+  if (!callerUC) {
+    return NextResponse.json({ error: 'No active company role' }, { status: 403 });
+  }
+
   const { data: cohort, error } = await supabase
     .from('cohorts')
     .select(`
       *,
-      programmes(id, name, description, strategy_pillar_id),
+      programmes(id, name, description),
       users!cohorts_trainer_user_id_fkey(id, name, email, avatar_url),
       cohort_phases(id, name, sequence_order),
       user_cohorts(
         id, user_id, cohort_role, status, enrolled_date,
-        users(id, name, email, avatar_url, phone)
+        users!user_cohorts_user_id_fkey(id, name, email, avatar_url, phone)
       ),
       resources(id, title, type, file_url, duration_minutes, sort_order)
     `)
     .eq('id', id)
+    .eq('company_id', callerUC.company_id)
     .single();
 
-  if (error || !cohort) {
+  if (error) {
+    // Helpful server-side debugging for RLS/join failures.
+    // This logs only Supabase error metadata (no secrets).
+    console.error('GET /api/cohorts/[id] supabase error', {
+      message: error.message,
+      code: (error as unknown as { code?: string }).code,
+      details: (error as unknown as { details?: string }).details,
+      hint: (error as unknown as { hint?: string }).hint,
+    });
+    return NextResponse.json({
+      error: error.message,
+      code: (error as unknown as { code?: string }).code,
+      details: (error as unknown as { details?: string }).details,
+      hint: (error as unknown as { hint?: string }).hint,
+    }, { status: 500 });
+  }
+
+  if (!cohort) {
     return NextResponse.json({ error: 'Cohort not found' }, { status: 404 });
   }
 

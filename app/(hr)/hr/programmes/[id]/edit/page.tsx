@@ -10,8 +10,6 @@ interface ProgrammeData {
   id: string;
   name: string;
   description: string | null;
-  strategy_pillar_id: string | null;
-  skills: { id: string; name: string; description: string | null; sort_order: number }[];
 }
 
 export default function EditProgrammePage() {
@@ -32,7 +30,7 @@ export default function EditProgrammePage() {
       .catch(() => setFetching(false));
   }, [params.id]);
 
-  async function handleSubmit(data: { name: string; description: string; strategy_pillar_id: string; skills: { name: string; description: string; sort_order: number }[] }) {
+  async function handleSubmit(data: { name: string; description: string }) {
     setLoading(true);
     try {
       const res = await fetch(`/api/programmes/${params.id}`, {
@@ -91,13 +89,6 @@ export default function EditProgrammePage() {
               initialData={{
                 name: programme.name,
                 description: programme.description ?? '',
-                strategy_pillar_id: programme.strategy_pillar_id ?? '',
-                skills: programme.skills.map(s => ({
-                  id: s.id,
-                  name: s.name,
-                  description: s.description ?? '',
-                  sort_order: s.sort_order,
-                })),
               }}
               onSubmit={handleSubmit}
               submitLabel="Save Changes"

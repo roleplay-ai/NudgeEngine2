@@ -11,7 +11,7 @@ export default function NewProgrammePage() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(data: { name: string; description: string; strategy_pillar_id: string; skills: { name: string; description: string; sort_order: number }[] }) {
+  async function handleSubmit(data: { name: string; description: string }) {
     setLoading(true);
     try {
       const res = await fetch('/api/programmes', {

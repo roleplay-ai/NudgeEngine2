@@ -12,7 +12,6 @@ async function getProgrammeData(companyId: string) {
     .from('programmes')
     .select(`
       *,
-      skills(id),
       cohorts(id, status),
       strategy_pillars(id, name, color)
     `)
@@ -67,9 +66,9 @@ export default async function ProgrammesPage() {
         <div className="data-table">
           <div
             className="grid px-5"
-            style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 80px', borderBottom: '1px solid rgba(34,29,35,0.08)', background: '#FAFAF7' }}
+            style={{ gridTemplateColumns: '2fr 1fr 1fr 80px', borderBottom: '1px solid rgba(34,29,35,0.08)', background: '#FAFAF7' }}
           >
-            {['Name', 'Skills', 'Cohorts', 'Strategy Pillar', 'Status', ''].map(h => (
+            {['Name', 'Cohorts', 'Status', ''].map(h => (
               <div key={h} className="th">{h}</div>
             ))}
           </div>
@@ -87,7 +86,7 @@ export default async function ProgrammesPage() {
                 key={prog.id}
                 href={`/hr/programmes/${prog.id}`}
                 className="grid px-5 items-center hover:bg-[#FFFBEE] transition-colors no-underline"
-                style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 80px', borderBottom: '0.5px solid rgba(34,29,35,0.06)' }}
+                style={{ gridTemplateColumns: '2fr 1fr 1fr 80px', borderBottom: '0.5px solid rgba(34,29,35,0.06)' }}
               >
                 <div className="td">
                   <div className="font-bold text-sm text-brand-dark">{prog.name}</div>
@@ -95,20 +94,7 @@ export default async function ProgrammesPage() {
                     <div className="td-muted line-clamp-1">{prog.description}</div>
                   )}
                 </div>
-                <div className="td text-text-muted text-xs">{prog.skills?.length ?? 0} skills</div>
                 <div className="td text-text-muted text-xs">{prog.cohorts?.length ?? 0} cohorts</div>
-                <div className="td">
-                  {prog.strategy_pillars ? (
-                    <span
-                      className="tag"
-                      style={{ background: `${prog.strategy_pillars.color}18`, color: prog.strategy_pillars.color }}
-                    >
-                      {prog.strategy_pillars.name}
-                    </span>
-                  ) : (
-                    <span className="text-text-muted text-xs">—</span>
-                  )}
-                </div>
                 <div className="td">
                   <StatusBadge status={prog.status} />
                 </div>
