@@ -528,6 +528,73 @@ async function seed() {
   }
   console.log('  ✓ Commitment demo data ready');
 
+  // ── STEP 16: Phase 5 demo data — confidence checkins + nudge ───────────
+  console.log('\n[Step 16] Seeding Phase 5 demo data…');
+
+  // Confidence check-ins for participant 0 (Arjun)
+  const userId0 = participantIds[0];
+  for (const [weekNum, score] of [[1, 5], [2, 7], [3, 8]] as [number, number][]) {
+    const { data: existing } = await supabase
+      .from('confidence_checkins')
+      .select('id')
+      .eq('user_id', userId0)
+      .eq('cohort_id', cohortId)
+      .eq('week_number', weekNum)
+      .maybeSingle();
+
+    if (!existing) {
+      await supabase.from('confidence_checkins').insert({
+        user_id: userId0,
+        cohort_id: cohortId,
+        confidence_score: score,
+        reflection: weekNum === 1
+          ? 'Still figuring out how to apply the frameworks from training.'
+          : weekNum === 2
+          ? 'Had my first SBI feedback conversation — it went well!'
+          : 'Feeling much more confident. Team response has been positive.',
+        week_number: weekNum,
+      });
+    }
+  }
+
+  // Demo nudge from trainer
+  const { data: trainerNudges } = await supabase
+    .from('nudges')
+    .select('id')
+    .eq('cohort_id', cohortId)
+    .limit(1);
+
+  if (!trainerNudges || trainerNudges.length === 0) {
+    await supabase.from('nudges').insert({
+      cohort_id: cohortId,
+      what: 'Have a 5-minute appreciation conversation with one team member today.',
+      how: '1. Pick someone who helped you recently. 2. Share one specific thing you noticed. 3. Explain the impact it had.',
+      why: 'Regular recognition builds psychological safety and increases engagement by up to 20%.',
+      time_minutes: 5,
+      scheduled_date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+      created_by: trainerUserId,
+    });
+  }
+
+  // Mark one action as completed for demo
+  if (planId) {
+    const { data: pendingActions } = await supabase
+      .from('user_actions')
+      .select('id')
+      .eq('commitment_plan_id', planId)
+      .eq('status', 'pending')
+      .limit(1);
+
+    if (pendingActions && pendingActions.length > 0) {
+      await supabase
+        .from('user_actions')
+        .update({ status: 'completed', completed_at: new Date().toISOString() })
+        .eq('id', pendingActions[0].id);
+    }
+  }
+
+  console.log('  ✓ Phase 5 demo data ready');
+
   // ── Done ───────────────────────────────────────────────────────────────
   console.log('\n' + '═'.repeat(60));
   console.log('✅ Seed complete! Here are your login credentials:\n');
