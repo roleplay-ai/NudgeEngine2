@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
   const participants = (enrolled ?? []).map(uc => {
     const entry = completionMap.get(uc.user_id) ?? { tasks: [], lastActive: null };
-    const readiness = 20 + entry.tasks.length * 20;
+    const readiness = entry.tasks.length * 25;
     return {
       user: uc.users,
       completed_tasks: entry.tasks,
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
   const total = participants.length;
   const avgReadiness = total > 0 ? Math.round(participants.reduce((s, p) => s + p.readiness_score, 0) / total) : 0;
   const fullyReady = participants.filter(p => p.readiness_score >= 100).length;
-  const notStarted = participants.filter(p => p.readiness_score <= 20).length;
+  const notStarted = participants.filter(p => p.readiness_score === 0).length;
 
   return NextResponse.json({
     participants,

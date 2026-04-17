@@ -40,7 +40,7 @@ export default function TrainerPreTrainingPage() {
     load();
   }, [cohortId]);
 
-  const notStartedList = participants.filter(p => p.readiness_score <= 20);
+  const notStartedList = participants.filter(p => p.readiness_score === 0);
 
   return (
     <main className="flex-1 overflow-y-auto px-7 py-6">

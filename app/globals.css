@@ -69,6 +69,14 @@ html, body {
   to   { opacity: 1; transform: translateX(0); }
 }
 @keyframes dash { to { stroke-dashoffset: 0; } }
+@keyframes taskEnter {
+  from { opacity: 0; transform: translateX(18px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes taskExit {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-18px); }
+}
 
 /* ── COMPONENT LAYER ───────────────────────────────────────── */
 @layer components {
@@ -223,6 +231,9 @@ html, body {
   }
   .tab-btn.active { @apply bg-brand-dark text-brand-yellow; }
   .tab-btn:hover:not(.active) { background: rgba(34,29,35,0.1); color: var(--text-primary); }
+
+  /* Task page enter animation */
+  .task-page { animation: taskEnter 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
 
   /* Section headings */
   .section-label {

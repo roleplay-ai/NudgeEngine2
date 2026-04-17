@@ -37,7 +37,7 @@ export async function GET() {
     .eq('cohort_id', cohortId);
 
   const completedTasks = (completions ?? []).map((c: { task_type: string }) => c.task_type);
-  const readinessScore = 20 + completedTasks.length * 20;
+  const readinessScore = completedTasks.length * 25;
 
   const trainingDate = new Date(cohort.training_date as string);
   const today = new Date();

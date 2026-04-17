@@ -27,14 +27,22 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (existing) {
-    await supabase
+    const { error: updateErr } = await supabase
       .from('resource_tracking')
       .update({ status, read_at: new Date().toISOString() })
       .eq('id', existing.id);
+    if (updateErr) {
+      console.error('resource_tracking update error', updateErr);
+      return NextResponse.json({ error: updateErr.message }, { status: 500 });
+    }
   } else {
-    await supabase
+    const { error: insertErr } = await supabase
       .from('resource_tracking')
       .insert({ user_id: user.id, resource_id, status, read_at: new Date().toISOString() });
+    if (insertErr) {
+      console.error('resource_tracking insert error', insertErr);
+      return NextResponse.json({ error: insertErr.message }, { status: 500 });
+    }
   }
 
   const { data: allResources } = await supabase
@@ -52,12 +60,13 @@ export async function POST(request: NextRequest) {
   const allDone = (allResources?.length ?? 0) > 0 && (readResources?.length ?? 0) >= (allResources?.length ?? 0);
 
   if (allDone) {
-    await supabase
+    const { error: tcErr } = await supabase
       .from('task_completions')
       .upsert(
         { user_id: user.id, cohort_id: resource.cohort_id, task_type: 'prereads', completed_at: new Date().toISOString() },
         { onConflict: 'user_id,cohort_id,task_type' }
       );
+    if (tcErr) console.error('task_completions upsert error (prereads)', tcErr);
   }
 
   const { data: allTasks } = await supabase
@@ -66,7 +75,7 @@ export async function POST(request: NextRequest) {
     .eq('user_id', user.id)
     .eq('cohort_id', resource.cohort_id);
 
-  const readinessScore = 20 + (allTasks?.length ?? 0) * 20;
+  const readinessScore = (allTasks?.length ?? 0) * 25;
 
   return NextResponse.json({ all_done: allDone, readiness_score: readinessScore });
 }

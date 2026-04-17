@@ -36,7 +36,7 @@ async function getParticipantData(userId: string) {
     .eq('cohort_id', cohort.id);
 
   const completedTasks = new Set((completions ?? []).map((c: { task_type: string }) => c.task_type));
-  const readinessScore = 20 + completedTasks.size * 20;
+  const readinessScore = completedTasks.size * 25;
 
   const trainingDate = new Date(cohort.training_date);
   const today = new Date();
@@ -53,10 +53,10 @@ async function getParticipantData(userId: string) {
 }
 
 const TASKS = [
-  { id: 'compare',  step: '01', title: 'Programme rating',  sub: 'Rate how you feel about the programme before training and see how you compare with your batch.', icon: '⭐', color: '#FFCE00', href: '/participant/pre-training/task-1-skills' },
-  { id: 'shape',    step: '02', title: 'Shape the Session',    sub: 'Share your expectations and goals for the training.',                         icon: '🎯', color: '#623CEA', href: '/participant/pre-training/task-2-expectations' },
-  { id: 'meet',     step: '03', title: 'Meet Your Batch',      sub: 'Introduce yourself and learn about your fellow participants.',                icon: '👋', color: '#23CE68', href: '/participant/pre-training/task-3-intro' },
-  { id: 'prereads', step: '04', title: 'Pre-reads',            sub: 'Review the materials shared by your trainer before the session.',             icon: '📖', color: '#3699FC', href: '/participant/pre-training/task-4-prereads' },
+  { id: 'compare',  step: '01', title: 'Programme Rating',  sub: 'Rate how you feel about the programme and see how you compare with your batch.',       icon: '⭐', color: '#FFCE00', href: '/participant/pre-training/task-1-skills' },
+  { id: 'shape',    step: '02', title: 'Shape the Session', sub: 'Share your expectations and goals so your trainer can tailor the session for you.',     icon: '🎯', color: '#623CEA', href: '/participant/pre-training/task-2-expectations' },
+  { id: 'prereads', step: '03', title: 'Pre-reads',         sub: 'Review the materials shared by your trainer before the session.',                       icon: '📖', color: '#3699FC', href: '/participant/pre-training/task-3-prereads' },
+  { id: 'meet',     step: '04', title: 'Meet Your Batch',   sub: 'Introduce yourself with your role and team, and learn about your fellow participants.', icon: '👋', color: '#23CE68', href: '/participant/pre-training/task-4-intro' },
 ];
 
 export default async function PreTrainingPage() {
@@ -237,7 +237,7 @@ export default async function PreTrainingPage() {
                         {done && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>}
                       </div>
                       <span className="text-xs text-text-secondary flex-1">{task.title}</span>
-                      <span className="text-xs font-bold" style={{ color: done ? '#23CE68' : task.color }}>+20%</span>
+                      <span className="text-xs font-bold" style={{ color: done ? '#23CE68' : task.color }}>+25%</span>
                     </div>
                   );
                 })}

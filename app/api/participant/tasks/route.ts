@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     .eq('user_id', user.id)
     .eq('cohort_id', cohort_id);
 
-  const readinessScore = 20 + (allTasks?.length ?? 0) * 20;
+  const readinessScore = (allTasks?.length ?? 0) * 25;
 
   return NextResponse.json({ task_type, readiness_score: readinessScore });
 }
